@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-    <script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>員工打卡系統</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * {
             margin: 0;
@@ -199,12 +198,8 @@
             </div>
 
             <div class="button-group">
-                <button type="button" class="btn btn-checkin" onclick="submitAttendance('上班')">
-                    上班打卡
-                </button>
-                <button type="button" class="btn btn-checkout" onclick="submitAttendance('下班')">
-                    下班打卡
-                </button>
+                <button type="button" class="btn btn-checkin" onclick="submitAttendance('上班')">上班打卡</button>
+                <button type="button" class="btn btn-checkout" onclick="submitAttendance('下班')">下班打卡</button>
             </div>
         </form>
 
@@ -217,28 +212,19 @@
             <div class="info-item"><strong>Google連線狀態:</strong> <span id="googleStatus">未連線</span></div>
         </div>
 
-        <!-- Google 登入按鈕 -->
         <div style="text-align: center; margin-top: 15px;">
-            <button id="googleSignInBtn" onclick="handleGoogleSignIn()" class="btn" style="background: #4285f4; color: white; font-size: 14px; padding: 10px 20px; display: none;">
-                連接 Google Sheets
-            </button>
-            <button id="googleSignOutBtn" onclick="handleGoogleSignOut()" class="btn" style="background: #dc3545; color: white; font-size: 14px; padding: 10px 20px; display: none;">
-                中斷 Google 連線
-            </button>
+            <button id="googleSignInBtn" onclick="handleGoogleSignIn()" class="btn" style="background: #4285f4; color: white; font-size: 14px; padding: 10px 20px; display: none;">連接 Google Sheets</button>
+            <button id="googleSignOutBtn" onclick="handleGoogleSignOut()" class="btn" style="background: #dc3545; color: white; font-size: 14px; padding: 10px 20px; display: none;">中斷 Google 連線</button>
         </div>
 
         <div class="security-notice">
             <strong>安全提醒:</strong> 此系統會記錄您的IP位址、設備資訊及瀏覽器指紋，僅限公司內部網路使用。
         </div>
 
-        <!-- 管理員按鈕 -->
         <div style="text-align: center; margin-top: 20px;">
-            <button onclick="toggleAdminPanel()" class="btn" style="background: #6c757d; color: white; font-size: 14px; padding: 10px 20px;">
-                管理員查看記錄
-            </button>
+            <button onclick="toggleAdminPanel()" class="btn" style="background: #6c757d; color: white; font-size: 14px; padding: 10px 20px;">管理員查看記錄</button>
         </div>
 
-        <!-- 管理員面板 -->
         <div id="adminPanel" style="display: none; margin-top: 20px;">
             <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; border-left: 4px solid #dc3545;">
                 <h3 style="color: #333; margin-bottom: 15px;">管理員登入</h3>
@@ -247,7 +233,6 @@
             </div>
         </div>
 
-        <!-- 打卡記錄面板 -->
         <div id="recordsPanel" style="display: none; margin-top: 20px;">
             <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; border-left: 4px solid #28a745;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -258,7 +243,6 @@
                     </div>
                 </div>
                 
-                <!-- 篩選器 -->
                 <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 8px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; align-items: end;">
                         <div>
@@ -282,46 +266,36 @@
         </div>
     </div>
 
-    <script src="https://apis.google.com/js/api.js"></script>
     <script>
         // Google Sheets 設定
         const GOOGLE_SHEETS_CONFIG = {
-            API_KEY: 'AIzaSyAGKA8HNf66Oy4B3iCvkrAFzX5szEuUN0Y', // 需要替換為您的 Google API Key
-            CLIENT_ID: '603305449819-ins2iemh3344d40udpu7c2dvh9718imc.apps.googleusercontent.com', // 需要替換為您的 Google Client ID
-            SPREADSHEET_ID: '1O6p8JplsnxMjrQ3uNZgiPzty1TCKXgaYsJjRkCGwW2o',
-            RANGE: 'Sheet1!A:F', // 工作表範圍
+            API_KEY: 'AIzaSyAGKA8HNf66Oy4B3iCvkrAFzX5szEuUN0Y', // 請確保這是有效的 API Key
+            CLIENT_ID: '603305449819-ins2iemh3344d40udpu7c2dvh9718imc.apps.googleusercontent.com', // 請確保這是有效的 Client ID
+            SPREADSHEET_ID: '1O6p8JplsnxMjrQ3uNZgiPzty1TCKXgaYsJjRkCGwW2o', // 請確保這是正確的 Spreadsheet ID
+            RANGE: 'Sheet1!A:F',
             DISCOVERY_DOC: 'https://sheets.googleapis.com/$discovery/rest?version=v4',
             SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
         };
 
-        // Google API 初始化狀態
         let gapi_initialized = false;
         let google_signed_in = false;
-        // 允許的IP範圍 (限定宏匯公司網路)
-        const ALLOWED_IP_RANGES = [
-            '10.121.120.',    // 宏匯公司內部網路
-            '127.0.0.1'       // 本地測試
-        ];
-
-        // 儲存打卡記錄 (使用 localStorage 在實際環境中持久保存)
+        const ALLOWED_IP_RANGES = ['10.121.120.', '127.0.0.1'];
         let attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+        const ADMIN_PASSWORD = 'admin123'; // 注意：硬編碼密碼不安全，建議使用後端驗證
 
-        // 管理員密碼 (實際部署時應該使用更安全的認證方式)
-        const ADMIN_PASSWORD = 'admin123';
-
-        // 獲取設備指紋資訊
+        // 獲取設備指紋
         function getDeviceFingerprint() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             ctx.textBaseline = 'top';
             ctx.font = '14px Arial';
             ctx.fillText('Device fingerprint', 2, 2);
-            
+
             return {
                 userAgent: navigator.userAgent,
                 language: navigator.language,
                 platform: navigator.platform,
-                screenResolution: `${screen.width}x${screen.height}`,
+                screenResolution: `${screen.width}x${screen.height}`, // 修正字符串拼接
                 colorDepth: screen.colorDepth,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 canvasFingerprint: canvas.toDataURL(),
@@ -332,16 +306,16 @@
             };
         }
 
-        // 檢查IP是否在允許範圍內
+        // 檢查IP是否允許
         function isIPAllowed(ip) {
             return ALLOWED_IP_RANGES.some(range => ip.startsWith(range));
         }
 
-        // 獲取用戶IP (實際部署時需要後端API)
+        // 模擬獲取用戶IP
         async function getUserIP() {
             try {
-                // 這裡使用模擬IP，實際部署時應該從後端獲取真實IP
-                const simulatedIP = '192.168.1.100'; // 模擬公司內部IP
+                // 注意：GitHub Pages 無法獲取真實 IP，需使用後端 API
+                const simulatedIP = '192.168.1.100'; // 模擬公司內部 IP
                 document.getElementById('userIP').textContent = simulatedIP;
                 return simulatedIP;
             } catch (error) {
@@ -372,7 +346,6 @@
             statusDiv.textContent = message;
             statusDiv.className = `status ${type}`;
             statusDiv.style.display = 'block';
-            
             setTimeout(() => {
                 statusDiv.style.display = 'none';
             }, 5000);
@@ -388,24 +361,20 @@
                 return;
             }
 
-            // 檢查IP限制
             const userIP = await getUserIP();
             if (!userIP || !isIPAllowed(userIP)) {
                 showStatus('存取被拒絕：請使用公司網路進行打卡！', 'error');
                 return;
             }
 
-            // 獲取設備指紋
             const deviceFingerprint = getDeviceFingerprint();
-            
-            // 檢查是否重複打卡 (簡單的防重複機制)
             const now = new Date();
             const today = now.toDateString();
             const recentRecord = attendanceRecords.find(record => 
                 record.employeeName === employeeName && 
                 record.date === today && 
                 record.type === type &&
-                (now - new Date(record.timestamp)) < 300000 // 5分鐘內不可重複打卡
+                (now - new Date(record.timestamp)) < 300000
             );
 
             if (recentRecord) {
@@ -413,7 +382,6 @@
                 return;
             }
 
-            // 建立打卡記錄
             const attendanceRecord = {
                 employeeName: employeeName,
                 location: location,
@@ -422,79 +390,62 @@
                 date: today,
                 ip: userIP,
                 deviceFingerprint: deviceFingerprint,
-                id: Date.now() + Math.random() // 簡單的ID生成
+                id: Date.now() + Math.random()
             };
 
-            // 儲存記錄到 localStorage 和 Google Sheets
             attendanceRecords.push(attendanceRecord);
             localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
-            
-            // 嘗試寫入 Google Sheets
-            const googleSuccess = await writeToGoogleSheets(attendanceRecord);
-            
-            console.log('打卡記錄已儲存:', attendanceRecord);
-            
+
+            let googleSuccess = false;
+            if (google_signed_in) {
+                googleSuccess = await writeToGoogleSheets(attendanceRecord);
+            } else {
+                showStatus('未連線到 Google Sheets，請先登入 Google 帳戶', 'error');
+            }
+
             if (googleSuccess) {
                 showStatus(`${employeeName} 於 ${location} ${type}打卡成功！(已同步至Google Sheets)`, 'success');
             } else {
                 showStatus(`${employeeName} 於 ${location} ${type}打卡成功！(僅儲存到本地)`, 'success');
             }
-            
-            // 清空表單
+
             document.getElementById('attendanceForm').reset();
         }
 
-        // 初始化頁面
-        function initializePage() {
-            updateCurrentTime();
-            setInterval(updateCurrentTime, 1000);
-            
-            getUserIP();
-            
-            // 顯示設備資訊
-            const deviceInfo = getDeviceFingerprint();
-            document.getElementById('deviceInfo').textContent = 
-                `${deviceInfo.platform} - ${deviceInfo.userAgent.split(' ')[0]}`;
-            
-            // 初始化 Google API
-            initializeGoogleAPI();
-        }
-
-        // Google API 相關函數
+        // 初始化 Google API
         async function initializeGoogleAPI() {
             try {
                 await new Promise((resolve) => {
-                    gapi.load('auth2:client', resolve);
+                    gapi.load('client:auth2', resolve);
                 });
-                
+
                 await gapi.client.init({
-                    apiKey: GOOGLE_SHEETS_CONFIG.API_KEY,
-                    clientId: GOOGLE_SHEETS_CONFIG.CLIENT_ID,
+                    apiKey: AIzaSyAGKA8HNf66Oy4B3iCvkrAFzX5szEuUN0Y,
+                    clientId: 603305449819-ins2iemh3344d40udpu7c2dvh9718imc.apps.googleusercontent.com,
                     discoveryDocs: [GOOGLE_SHEETS_CONFIG.DISCOVERY_DOC],
                     scope: GOOGLE_SHEETS_CONFIG.SCOPES
                 });
-                
+
                 gapi_initialized = true;
-                
-                // 檢查是否已經登入
                 const authInstance = gapi.auth2.getAuthInstance();
                 google_signed_in = authInstance.isSignedIn.get();
-                
                 updateGoogleStatus();
-                
+
                 console.log('Google API 初始化成功');
             } catch (error) {
                 console.error('Google API 初始化失敗:', error);
-                document.getElementById('googleStatus').textContent = '初始化失敗 (請檢查API設定)';
+                document.getElementById('googleStatus').textContent = `初始化失敗 (${error.details || error.message})`;
                 document.getElementById('googleStatus').style.color = '#dc3545';
+                showStatus('Google API 初始化失敗，請檢查 API 設定或網路連線', 'error');
             }
         }
 
+        // 更新 Google 連線狀態
         function updateGoogleStatus() {
             const statusElement = document.getElementById('googleStatus');
             const signInBtn = document.getElementById('googleSignInBtn');
             const signOutBtn = document.getElementById('googleSignOutBtn');
-            
+
             if (!gapi_initialized) {
                 statusElement.textContent = '初始化中...';
                 statusElement.style.color = '#ffc107';
@@ -513,6 +464,7 @@
             }
         }
 
+        // Google 登入
         async function handleGoogleSignIn() {
             try {
                 const authInstance = gapi.auth2.getAuthInstance();
@@ -526,6 +478,7 @@
             }
         }
 
+        // Google 登出
         async function handleGoogleSignOut() {
             try {
                 const authInstance = gapi.auth2.getAuthInstance();
@@ -535,18 +488,26 @@
                 showStatus('已中斷 Google 連線', 'success');
             } catch (error) {
                 console.error('Google 登出失敗:', error);
+                showStatus('Google 登出失敗，請稍後再試', 'error');
             }
         }
 
         // 寫入 Google Sheets
         async function writeToGoogleSheets(attendanceRecord) {
-            if (!google_signed_in) {
-                console.warn('Google Sheets 未連線，僅儲存到本地');
+            if (!gapi_initialized || !google_signed_in) {
+                console.warn('Google Sheets 未連線');
                 return false;
             }
-            
+
             try {
-                // 準備要寫入的資料
+                const authInstance = gapi.auth2.getAuthInstance();
+                if (!authInstance.isSignedIn.get()) {
+                    showStatus('Google 帳戶未登入，請重新連接', 'error');
+                    google_signed_in = false;
+                    updateGoogleStatus();
+                    return false;
+                }
+
                 const date = new Date(attendanceRecord.timestamp);
                 const timeStr = date.toLocaleString('zh-TW', {
                     year: 'numeric',
@@ -556,59 +517,42 @@
                     minute: '2-digit',
                     second: '2-digit'
                 });
-                
+
                 const values = [[
-                    timeStr,                                    // A欄：時間
-                    attendanceRecord.employeeName,              // B欄：姓名
-                    attendanceRecord.location,                  // C欄：地點
-                    attendanceRecord.type,                      // D欄：類型
-                    attendanceRecord.ip,                        // E欄：IP
-                    attendanceRecord.deviceFingerprint.platform // F欄：設備
+                    timeStr,
+                    attendanceRecord.employeeName,
+                    attendanceRecord.location,
+                    attendanceRecord.type,
+                    attendanceRecord.ip,
+                    attendanceRecord.deviceFingerprint.platform
                 ]];
-                
-                // 寫入資料到 Google Sheets
+
                 const response = await gapi.client.sheets.spreadsheets.values.append({
                     spreadsheetId: GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID,
                     range: GOOGLE_SHEETS_CONFIG.RANGE,
                     valueInputOption: 'USER_ENTERED',
-                    resource: {
-                        values: values
-                    }
+                    resource: { values }
                 });
-                
+
                 console.log('資料已寫入 Google Sheets:', response);
                 return true;
             } catch (error) {
                 console.error('寫入 Google Sheets 失敗:', error);
-                showStatus('寫入 Google Sheets 失敗：' + error.message, 'error');
+                showStatus(`寫入 Google Sheets 失敗：${error.message || '未知錯誤'}`, 'error');
                 return false;
             }
         }
-
-        // 頁面載入完成後初始化
-        document.addEventListener('DOMContentLoaded', initializePage);
-
-        // 防止表單重複提交
-        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-        });
 
         // 管理員功能
         function toggleAdminPanel() {
             const panel = document.getElementById('adminPanel');
             const recordsPanel = document.getElementById('recordsPanel');
-            
-            if (panel.style.display === 'none') {
-                panel.style.display = 'block';
-                recordsPanel.style.display = 'none';
-            } else {
-                panel.style.display = 'none';
-            }
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            recordsPanel.style.display = 'none';
         }
 
         function adminLogin() {
             const password = document.getElementById('adminPassword').value;
-            
             if (password === ADMIN_PASSWORD) {
                 document.getElementById('adminPanel').style.display = 'none';
                 document.getElementById('recordsPanel').style.display = 'block';
@@ -623,16 +567,14 @@
             const records = filteredRecords || attendanceRecords;
             const recordsList = document.getElementById('recordsList');
             const recordsStats = document.getElementById('recordsStats');
-            
+
             if (records.length === 0) {
                 recordsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">目前沒有打卡記錄</p>';
                 recordsStats.textContent = '總計：0 筆記錄';
                 return;
             }
 
-            // 按時間倒序排列
             const sortedRecords = records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
             let html = '<table style="width: 100%; border-collapse: collapse; font-size: 14px;">';
             html += '<thead><tr style="background: #e9ecef;">';
             html += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">時間</th>';
@@ -652,55 +594,44 @@
                     minute: '2-digit',
                     second: '2-digit'
                 });
-                
                 const typeColor = record.type === '上班' ? '#28a745' : '#dc3545';
-                
-                html += '<tr>';
-                html += `<td style="border: 1px solid #ddd; padding: 8px;">${timeStr}</td>`;
-                html += `<td style="border: 1px solid #ddd; padding: 8px; font-weight: 600;">${record.employeeName}</td>`;
-                html += `<td style="border: 1px solid #ddd; padding: 8px;">${record.location}</td>`;
-                html += `<td style="border: 1px solid #ddd; padding: 8px; color: ${typeColor}; font-weight: 600;">${record.type}</td>`;
-                html += `<td style="border: 1px solid #ddd; padding: 8px; font-family: monospace;">${record.ip}</td>`;
-                html += `<td style="border: 1px solid #ddd; padding: 8px; font-size: 12px;">${record.deviceFingerprint.platform}</td>`;
-                html += '</tr>';
+                html += `<tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${timeStr}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: 600;">${record.employeeName}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${record.location}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; color: ${typeColor}; font-weight: 600;">${record.type}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; font-family: monospace;">${record.ip}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; font-size: 12px;">${record.deviceFingerprint.platform}</td>
+                </tr>`;
             });
 
             html += '</tbody></table>';
             recordsList.innerHTML = html;
 
-            // 統計資訊
             const checkInCount = records.filter(r => r.type === '上班').length;
             const checkOutCount = records.filter(r => r.type === '下班').length;
             const uniqueEmployees = new Set(records.map(r => r.employeeName)).size;
-            
-            recordsStats.innerHTML = `
-                <strong>統計資訊:</strong> 
-                總計 ${records.length} 筆記錄 | 
-                上班 ${checkInCount} 次 | 
-                下班 ${checkOutCount} 次 | 
-                員工數 ${uniqueEmployees} 人
-            `;
+            recordsStats.innerHTML = `<strong>統計資訊:</strong> 總計 ${records.length} 筆記錄 | 上班 ${checkInCount} 次 | 下班 ${checkOutCount} 次 | 員工數 ${uniqueEmployees} 人`;
         }
 
         function applyFilter() {
             const filterDate = document.getElementById('filterDate').value;
             const filterName = document.getElementById('filterName').value.toLowerCase();
-            
             let filteredRecords = attendanceRecords;
-            
+
             if (filterDate) {
                 filteredRecords = filteredRecords.filter(record => {
                     const recordDate = new Date(record.timestamp).toISOString().split('T')[0];
                     return recordDate === filterDate;
                 });
             }
-            
+
             if (filterName) {
                 filteredRecords = filteredRecords.filter(record => 
                     record.employeeName.toLowerCase().includes(filterName)
                 );
             }
-            
+
             displayRecords(filteredRecords);
         }
 
@@ -716,23 +647,19 @@
                 return;
             }
 
-            // 建立CSV內容
-            let csvContent = '\uFEFF'; // UTF-8 BOM
+            let csvContent = '\uFEFF';
             csvContent += '時間,姓名,地點,類型,IP位址,設備平台\n';
-            
             attendanceRecords.forEach(record => {
                 const date = new Date(record.timestamp);
                 const timeStr = date.toLocaleString('zh-TW');
                 csvContent += `"${timeStr}","${record.employeeName}","${record.location}","${record.type}","${record.ip}","${record.deviceFingerprint.platform}"\n`;
             });
 
-            // 下載檔案
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `打卡記錄_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
-            
             showStatus('記錄已匯出為CSV檔案！', 'success');
         }
 
@@ -744,51 +671,19 @@
                 showStatus('所有記錄已清空！', 'success');
             }
         }
+
+        // 初始化頁面
+        function initializePage() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            getUserIP();
+            const deviceInfo = getDeviceFingerprint();
+            document.getElementById('deviceInfo').textContent = `${deviceInfo.platform} - ${deviceInfo.userAgent.split(' ')[0]}`;
+            initializeGoogleAPI();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializePage);
+        document.getElementById('attendanceForm').addEventListener('submit', e => e.preventDefault());
     </script>
-
-    <script src="https://apis.google.com/js/api.js"></script>
-<script>
-    const CLIENT_ID = '你的_CLIENT_ID.apps.googleusercontent.com';
-    const API_KEY = '你的_API_KEY';
-    const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
-    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
-
-    function handleClientLoad() {
-        gapi.load('client:auth2', initClient);
-    }
-
-    function initClient() {
-        gapi.client.init({
-            apiKey: API_KEY,
-            clientId: CLIENT_ID,
-            discoveryDocs: DISCOVERY_DOCS,
-            scope: SCOPES
-        }).then(function () {
-            document.getElementById('googleStatus').innerText = "已連線";
-            document.getElementById('googleSignInBtn').style.display = "none";
-            document.getElementById('googleSignOutBtn').style.display = "inline-block";
-        }, function (error) {
-            document.getElementById('googleStatus').innerText = "初始化失敗";
-            console.error(JSON.stringify(error, null, 2));
-        });
-    }
-
-    function handleGoogleSignIn() {
-        gapi.auth2.getAuthInstance().signIn();
-    }
-
-    function handleGoogleSignOut() {
-        gapi.auth2.getAuthInstance().signOut().then(() => {
-            document.getElementById('googleStatus').innerText = "未連線";
-            document.getElementById('googleSignInBtn').style.display = "inline-block";
-            document.getElementById('googleSignOutBtn').style.display = "none";
-        });
-    }
-
-    // 載入 Google API 並初始化
-    window.onload = function () {
-        handleClientLoad();
-    };
-</script>
 </body>
 </html>
