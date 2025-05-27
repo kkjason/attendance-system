@@ -269,9 +269,9 @@
     <script>
         // Google Sheets 設定
         const GOOGLE_SHEETS_CONFIG = {
-            API_KEY: 'AIzaSyAGKA8HNf66Oy4B3iCvkrAFzX5szEuUN0Y', // 請確保這是有效的 API Key
-            CLIENT_ID: '603305449819-ins2iemh3344d40udpu7c2dvh9718imc.apps.googleusercontent.com', // 請確保這是有效的 Client ID
-            SPREADSHEET_ID: '1O6p8JplsnxMjrQ3uNZgiPzty1TCKXgaYsJjRkCGwW2o', // 請確保這是正確的 Spreadsheet ID
+            API_KEY: 'AIzaSyAGKA8HNf66Oy4B3iCvkrAFzX5szEuUN0Y', // 請確認這是有效的 API Key
+            CLIENT_ID: '603305449819-ins2iemh3344d40udpu7c2dvh9718imc.apps.googleusercontent.com', // 請確認這是有效的 Client ID
+            SPREADSHEET_ID: '1O6p8JplsnxMjrQ3uNZgiPzty1TCKXgaYsJjRkCGwW2o', // 請確認這是正確的 Spreadsheet ID
             RANGE: 'Sheet1!A:F',
             DISCOVERY_DOC: 'https://sheets.googleapis.com/$discovery/rest?version=v4',
             SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
@@ -295,7 +295,7 @@
                 userAgent: navigator.userAgent,
                 language: navigator.language,
                 platform: navigator.platform,
-                screenResolution: `${screen.width}x${screen.height}`, // 修正字符串拼接
+                screenResolution: `${screen.width}x${screen.height}`,
                 colorDepth: screen.colorDepth,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 canvasFingerprint: canvas.toDataURL(),
@@ -414,14 +414,25 @@
 
         // 初始化 Google API
         async function initializeGoogleAPI() {
+            if (!window.gapi) {
+                console.error('Google API 腳本未載入');
+                document.getElementById('googleStatus').textContent = 'Google API 腳本載入失敗';
+                document.getElementById('googleStatus').style.color = '#dc3545';
+                showStatus('Google API 腳本載入失敗，請檢查網路連線', 'error');
+                return;
+            }
+
             try {
-                await new Promise((resolve) => {
-                    gapi.load('client:auth2', resolve);
+                await new Promise((resolve, reject) => {
+                    gapi.load('client:auth2', {
+                        callback: resolve,
+                        onerror: () => reject(new Error('gapi.load 失敗'))
+                    });
                 });
 
                 await gapi.client.init({
-                    apiKey: AIzaSyAGKA8HNf66Oy4B3iCvkrAFzX5szEuUN0Y,
-                    clientId: 603305449819-ins2iemh3344d40udpu7c2dvh9718imc.apps.googleusercontent.com,
+                    apiKey: GOOGLE_SHEETS_CONFIG.API_KEY,
+                    clientId: GOOGLE_SHEETS_CONFIG.CLIENT_ID,
                     discoveryDocs: [GOOGLE_SHEETS_CONFIG.DISCOVERY_DOC],
                     scope: GOOGLE_SHEETS_CONFIG.SCOPES
                 });
@@ -434,9 +445,9 @@
                 console.log('Google API 初始化成功');
             } catch (error) {
                 console.error('Google API 初始化失敗:', error);
-                document.getElementById('googleStatus').textContent = `初始化失敗 (${error.details || error.message})`;
+                document.getElementById('googleStatus').textContent = `初始化失敗 (${error.message || '未知錯誤'})`;
                 document.getElementById('googleStatus').style.color = '#dc3545';
-                showStatus('Google API 初始化失敗，請檢查 API 設定或網路連線', 'error');
+                showStatus(`Google API 初始化失敗：${error.message || '請檢查 API 設定或網路連線'}`, 'error');
             }
         }
 
