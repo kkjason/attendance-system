@@ -186,12 +186,7 @@
                 <label for="location">工作地點</label>
                 <select id="location" name="location" required>
                     <option value="">請選擇工作地點</option>
-                    <option value="總公司">總公司</option>
-                    <option value="台北分公司">台北分公司</option>
-                    <option value="台中分公司">台中分公司</option>
-                    <option value="高雄分公司">高雄分公司</option>
-                    <option value="客戶現場">客戶現場</option>
-                    <option value="在家工作">在家工作</option>
+                    <option value="宏匯">宏匯</option>
                 </select>
             </div>
 
@@ -224,13 +219,14 @@
     </div>
 
     <script>
-        // 允許的IP範圍 (公司內部網路)
+        // 允許的IP範圍 (請替換為您公司實際的IP範圍)
         const ALLOWED_IP_RANGES = [
-            '192.168.1.',    // 內部網路範圍1
-            '192.168.0.',    // 內部網路範圍2
-            '10.0.0.',       // 內部網路範圍3
-            '172.16.',       // 內部網路範圍4
-            '127.0.0.1'      // 本地測試
+            '您的公司IP範圍',  // 例如: '203.123.45.'
+            '192.168.1.',     // 內部網路範圍1
+            '192.168.0.',     // 內部網路範圍2
+            '10.0.0.',        // 內部網路範圍3
+            '172.16.',        // 內部網路範圍4
+            '127.0.0.1'       // 本地測試
         ];
 
         // 儲存打卡記錄 (實際部署時應該連接到後端資料庫)
